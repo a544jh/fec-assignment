@@ -5,25 +5,36 @@ import time
 
 IP = "127.0.0.1"
 PORT = 5005
-DROP_CHANCE = 0.01
+DROP_CHANCE = 0
+USE_XOR = False
+
+def encodeHeader(seqno, end_flag):
+  seqno_bytes = seqno.to_bytes(8,'little')
+  end_flag_byte = end_flag.to_bytes(1,'little')
+  return seqno_bytes + end_flag_byte
+
+def xorBytes(a, b, c):
+  for i in range(len(a)):
+    c[i] = a[i] ^ b[i]
+  return c
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 end_flag = 0
+data = sys.stdin.buffer.read()
 
 seqno = 0
 while end_flag != 1:
-  data = sys.stdin.buffer.read(100)
-  if len(data) < 100:
+  payload = data[seqno*100:(seqno*100)+100]
+  if len(payload) < 100:
     end_flag = 1
-  seqno_bytes = seqno.to_bytes(8,'little')
-  end_flag_byte = end_flag.to_bytes(1,'little')
-
-  payload = seqno_bytes + end_flag_byte + data
+  header = encodeHeader(seqno, end_flag)
+  packet = header + payload
   for i in range(0,3):
     if random.random() >= DROP_CHANCE:
-      sock.sendto(payload, (IP, PORT))
+      sock.sendto(packet, (IP, PORT))
       #print("Sent packet {}".format(seqno))
     else:
       print("Didn't send packet {}:{}".format(seqno, i))
   seqno += 1
-  #time.sleep(0.001)
+  # small delay to allow for receiver processing
+  time.sleep(0.001)
