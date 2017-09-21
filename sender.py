@@ -18,7 +18,10 @@ def encodeHeader(seqno, lastDataLength):
 def xorBytes(a, b):
   c = bytearray(len(a))
   for i in range(len(a)):
-    c[i] = a[i] ^ b[i]
+    try:
+      c[i] = a[i] ^ b[i]
+    except IndexError:
+      c[i] = 0
   return c
 
 def isXorPacket(seqno):

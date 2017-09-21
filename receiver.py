@@ -55,6 +55,8 @@ while True:
       elif len(bufferB) == 0 and len(bufferA) > 0:
         print("B = A xor C")
         bufferB.extend(xorBytes(bufferA, payload))
+      if lastDataLength > 0:
+        bufferB = bufferB[:lastDataLength]
     if len(bufferA) > 0 and len(bufferB) > 0:
       receivedData.extend(bufferA)
       receivedData.extend(bufferB)
