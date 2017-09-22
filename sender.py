@@ -36,7 +36,6 @@ def isXorPacket(seqno):
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 lastDataLength = 0
 data = sys.stdin.buffer.read()
-#data = open('testfile1', 'rb').read()
 
 dataIndex = 0
 seqno = 0
@@ -55,7 +54,8 @@ while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seq
     a = data[(dataIndex-2)*100:((dataIndex-2)*100)+100]
     b = data[(dataIndex-1)*100:((dataIndex-1)*100)+100]
     payload = xorBytes(a,b)
-  print("Data length: {}".format(lastDataLength))
+  if lastDataLength > 0:
+    print("Last data length: {}".format(lastDataLength))
   header = encodeHeader(seqno, lastDataLength)
   packet = header + payload
   repeats = 3 if not USE_XOR or (USE_XOR and lastDataLength > 0 and seqno % 3 == 0) else 1 #edge case: send three packets if xor ends at A packet
