@@ -2,18 +2,24 @@ import sys
 import socket
 import random
 import time
+import argparse
 
-IP = "127.0.0.1"
-PORT = 5005
-DROP_CHANCE = 0.5
-USE_XOR = False
+parser = argparse.ArgumentParser()
+parser.add_argument("--ip", type=str, default="127.0.0.1")
+parser.add_argument("--port", type=int, default=5005)
+parser.add_argument("--use-xor", type=bool)
+parser.add_argument("--drop-chance", type=float, default=0)
+args = parser.parse_args()
+
+IP = args.ip
+PORT = args.port
+DROP_CHANCE = args.drop_chance
+USE_XOR = args.use_xor
 
 def encodeHeader(seqno, lastDataLength):
   seqno_bytes = seqno.to_bytes(8,'big')
   lastDataLength_byte = lastDataLength.to_bytes(1,'big')
   return seqno_bytes + lastDataLength_byte
-
-#TODO: fix EOF in C packet eg. by encoding length of B packet
 
 def xorBytes(a, b):
   c = bytearray(len(a))

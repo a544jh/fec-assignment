@@ -1,8 +1,17 @@
 import socket
+import argparse
 
-IP = "127.0.0.1"
-PORT = 5005
-USE_XOR = True
+parser = argparse.ArgumentParser()
+parser.add_argument("--ip", type=str, default="127.0.0.1")
+parser.add_argument("--port", type=int, default=5005)
+parser.add_argument("--use-xor", type=bool)
+parser.add_argument("-o", type=str, help="Output file", default="out")
+args = parser.parse_args()
+
+IP = args.ip
+PORT = args.port
+USE_XOR = args.use_xor
+OUTPUT_FILENAME = args.o
 
 def decodePacket(packet):
   seqno = int.from_bytes(packet[0:8], 'big')
@@ -87,6 +96,6 @@ while True:
 print("Received whole file! {} bytes".format(len(receivedData)))
 #print(bytes(receivedData))
 
-file = open('out', 'bw')
+file = open(OUTPUT_FILENAME, 'bw')
 file.write(receivedData)
 file.close()
