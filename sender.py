@@ -7,7 +7,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--ip", type=str, default="127.0.0.1")
 parser.add_argument("--port", type=int, default=5005)
-parser.add_argument("--use-xor", type=bool)
+parser.add_argument("--use-xor", action="store_true")
 parser.add_argument("--drop-chance", type=float, default=0)
 args = parser.parse_args()
 
@@ -39,6 +39,7 @@ data = sys.stdin.buffer.read()
 
 dataIndex = 0
 seqno = 0
+print("Starting to send")
 while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seqno)): #also send last C packet
   if not USE_XOR or (not isXorPacket(seqno)):
     print("Sending data packet " + str(seqno))
@@ -55,7 +56,7 @@ while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seq
     b = data[(dataIndex-1)*100:((dataIndex-1)*100)+100]
     payload = xorBytes(a,b)
   if lastDataLength > 0:
-    print("Last data length: {}".format(lastDataLength))
+    print(" ,last data length: {}".format(lastDataLength), end='')
   header = encodeHeader(seqno, lastDataLength)
   packet = header + payload
   repeats = 3 if not USE_XOR or (USE_XOR and lastDataLength > 0 and seqno % 3 == 0) else 1 #edge case: send three packets if xor ends at A packet

@@ -4,7 +4,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--ip", type=str, default="127.0.0.1")
 parser.add_argument("--port", type=int, default=5005)
-parser.add_argument("--use-xor", type=bool)
+parser.add_argument("--use-xor", action="store_true")
 parser.add_argument("-o", type=str, help="Output file", default="out")
 args = parser.parse_args()
 
@@ -37,6 +37,7 @@ bufferA = bytearray()
 bufferB = bytearray()
 bufferC = bytearray()
 lastB = False
+print("Starting to receive")
 while True:
   packet, addr = sock.recvfrom(1024)
   seqno, lastDataLength, payload = decodePacket(packet)
