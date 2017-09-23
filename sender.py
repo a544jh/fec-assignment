@@ -40,9 +40,10 @@ data = sys.stdin.buffer.read()
 dataIndex = 0
 seqno = 0
 print("Starting to send")
-while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seqno)): #also send last C packet
+                             # also send last C packet
+while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seqno)):
   if not USE_XOR or (not isXorPacket(seqno)):
-    print("Sending data packet " + str(seqno))
+    print("Sending data packet {}".format(seqno))
     payload = data[dataIndex*100:(dataIndex*100)+100]
     dataIndex += 1
     thereIsNoMoreData = len(data[(dataIndex)*100:((dataIndex)*100)+100]) == 0
@@ -51,7 +52,7 @@ while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seq
     else:
       lastDataLength = 0
   else:
-    print("Sending XOR packet " + str(seqno))
+    print("Sending XOR packet {}".format(seqno))
     a = data[(dataIndex-2)*100:((dataIndex-2)*100)+100]
     b = data[(dataIndex-1)*100:((dataIndex-1)*100)+100]
     payload = xorBytes(a,b)
@@ -59,11 +60,11 @@ while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seq
     print(" ,last data length: {}".format(lastDataLength), end='')
   header = encodeHeader(seqno, lastDataLength)
   packet = header + payload
-  repeats = 3 if not USE_XOR or (USE_XOR and lastDataLength > 0 and seqno % 3 == 0) else 1 #edge case: send three packets if xor ends at A packet
+  # edge case: send three packets if XOR data ends at A packet
+  repeats = 3 if not USE_XOR or (USE_XOR and lastDataLength > 0 and seqno % 3 == 0) else 1
   for i in range(0,repeats):
     if random.random() >= DROP_CHANCE:
       sock.sendto(packet, (IP, PORT))
-      #print("Sent packet {}".format(seqno))
     else:
       print("Didn't send packet {}:{}".format(seqno, i))
   seqno += 1

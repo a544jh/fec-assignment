@@ -77,12 +77,13 @@ while True:
     if len(bufferC) > 0:
       if len(bufferA) == 0 and len(bufferB) > 0:
         eprint("A = B xor C")
-        # bufferC first because its alwas guranteed to be 100 bytes...
+        # bufferC first because its always guranteed to be 100 bytes...
         bufferA.extend(xorBytes(bufferC, bufferB))
       elif len(bufferB) == 0 and len(bufferA) > 0:
         eprint("B = A xor C")
         bufferB.extend(xorBytes(bufferC, bufferA))
         if lastB:
+          # drop excess zeroes from last B packet after XORing
           bufferB = bufferB[:lastDataLength]
     if len(bufferA) > 0 and len(bufferB) > 0:
       receivedData.extend(bufferA)
@@ -98,8 +99,7 @@ while True:
 
   
 
-print("Received whole file! {} bytes".format(len(receivedData)))
-#print(bytes(receivedData))
+eprint("Received whole file! {} bytes".format(len(receivedData)))
 
 if len(OUTPUT_FILENAME) > 0:
   file = open(OUTPUT_FILENAME, 'bw')

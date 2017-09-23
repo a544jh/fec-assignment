@@ -26,6 +26,7 @@ def runTransfer(test, data, useXor=False, dropChance=0):
     test.fail("Timeout reached")
     return
   output = receiver.stdout.read()
+  receiver.stdout.close()
   test.assertEqual(data, output)
 
 def readFile(path):
