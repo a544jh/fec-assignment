@@ -4,15 +4,13 @@ import os
 import time
 
 def runTransfer(test, data, useXor=False, dropChance=0):
-  if os.path.isfile('out'):
-    os.remove("out")
   receiverCmd = ["python3.6", "receiver.py"]
   senderCmd = ["python3.6", "sender.py", "--drop-chance", str(dropChance)]
   if useXor:
     receiverCmd.append('--use-xor')
     senderCmd.append('--use-xor')
 
-  receiver = subprocess.Popen(receiverCmd)
+  receiver = subprocess.Popen(receiverCmd, stdout=subprocess.PIPE)
   time.sleep(0.1) # allow receiver to get ready
   sender = subprocess.Popen(senderCmd, stdin=subprocess.PIPE)
   
@@ -27,10 +25,7 @@ def runTransfer(test, data, useXor=False, dropChance=0):
     time.sleep(0.5)
     test.fail("Timeout reached")
     return
-  outputFile = open('out', 'br')
-  output = outputFile.read()
-  outputFile.close()
-
+  output = receiver.stdout.read()
   test.assertEqual(data, output)
 
 def readFile(path):
@@ -40,20 +35,21 @@ def readFile(path):
   return data
 
 class TestFEC(unittest.TestCase):
+
+  def test_basic(self):
+    data = bytes('asd', 'utf-8')
+    runTransfer(self, data)
+
   def test_files(self):
     for file in os.listdir('testfiles'):
+      testName = 'UseXor: {}, File: {}, DropChance: {}'
       data = readFile('testfiles/' + file)
-      with self.subTest('Scheme: basic, File: ' + file):
-        runTransfer(self, data, useXor=False)
-      with self.subTest('Scheme: XOR, File: ' + file):
-        runTransfer(self, data, useXor=True)
-
-  def test_files_small_loss(self):
-    for file in os.listdir('testfiles'):
-      data = readFile('testfiles/' + file)
-      with self.subTest('Scheme: basic, File: ' + file):
-        runTransfer(self, data, useXor=False, dropChance=0.001)
-      with self.subTest('Scheme: XOR, File: ' + file):
-        runTransfer(self, data, useXor=True, dropChance=0.001)
-
-
+      cases = [
+        {'useXor': False, 'dropChance': 0},
+        {'useXor': True, 'dropChance': 0},
+        {'useXor': False, 'dropChance': 0.001},
+        {'useXor': True, 'dropChance': 0.001}
+      ]
+      for case in cases:
+        with self.subTest(testName.format(case['useXor'], file, case['dropChance'])):
+          runTransfer(self, data, useXor=case['useXor'], dropChance=case['dropChance'])

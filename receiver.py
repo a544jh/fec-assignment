@@ -1,17 +1,21 @@
 import socket
 import argparse
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--ip", type=str, default="127.0.0.1")
 parser.add_argument("--port", type=int, default=5005)
 parser.add_argument("--use-xor", action="store_true")
-parser.add_argument("-o", type=str, help="Output file", default="out")
+parser.add_argument("-o", type=str, help="Output file", default="")
 args = parser.parse_args()
 
 IP = args.ip
 PORT = args.port
 USE_XOR = args.use_xor
 OUTPUT_FILENAME = args.o
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 def decodePacket(packet):
   seqno = int.from_bytes(packet[0:8], 'big')
@@ -37,14 +41,14 @@ bufferA = bytearray()
 bufferB = bytearray()
 bufferC = bytearray()
 lastB = False
-print("Starting to receive")
+eprint("Starting to receive")
 while True:
   packet, addr = sock.recvfrom(1024)
   seqno, lastDataLength, payload = decodePacket(packet)
   if not USE_XOR:
     if seqno == expectedSeqno:
       receivedData.extend(payload)
-      print("Received packet {}".format(seqno))
+      eprint("Received packet {}".format(seqno))
       expectedSeqno += 1
       if lastDataLength > 0:
         break
@@ -54,29 +58,29 @@ while True:
     if not withinWindow:
       continue
     if packetType == 0 and len(bufferA) == 0: #a
-      print("Received A packet {}".format(seqno))
+      eprint("Received A packet {}".format(seqno))
       # last packet is A, end here
       if lastDataLength > 0:
         receivedData.extend(payload)
         break
       bufferA.extend(payload)
     elif packetType == 1 and len(bufferB) == 0: #b
-      print("Received B packet {}".format(seqno))
+      eprint("Received B packet {}".format(seqno))
       bufferB.extend(payload)
       if lastDataLength > 0:
         lastB = True
     elif packetType == 2 and len(bufferC) == 0: #c
-      print("Received C packet {}".format(seqno))
+      eprint("Received C packet {}".format(seqno))
       bufferC.extend(payload)
       if lastDataLength > 0:
         lastB = True
     if len(bufferC) > 0:
       if len(bufferA) == 0 and len(bufferB) > 0:
-        print("A = B xor C")
+        eprint("A = B xor C")
         # bufferC first because its alwas guranteed to be 100 bytes...
         bufferA.extend(xorBytes(bufferC, bufferB))
       elif len(bufferB) == 0 and len(bufferA) > 0:
-        print("B = A xor C")
+        eprint("B = A xor C")
         bufferB.extend(xorBytes(bufferC, bufferA))
         if lastB:
           bufferB = bufferB[:lastDataLength]
@@ -97,6 +101,10 @@ while True:
 print("Received whole file! {} bytes".format(len(receivedData)))
 #print(bytes(receivedData))
 
-file = open(OUTPUT_FILENAME, 'bw')
-file.write(receivedData)
-file.close()
+if len(OUTPUT_FILENAME) > 0:
+  file = open(OUTPUT_FILENAME, 'bw')
+  file.write(receivedData)
+  file.close()
+else:
+  sys.stdout.buffer.write(receivedData)
+  sys.stdout.buffer.close()
