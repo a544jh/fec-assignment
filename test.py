@@ -18,15 +18,13 @@ def runTransfer(test, data, useXor=False, dropChance=0):
   sender.stdin.close()
   try:
     sender.wait(5)
-    receiver.wait(5)
+    output = receiver.communicate(timeout=5)[0]
   except subprocess.TimeoutExpired:
     sender.terminate()
     receiver.terminate()
     time.sleep(0.5)
     test.fail("Timeout reached")
     return
-  output = receiver.stdout.read()
-  receiver.stdout.close()
   test.assertEqual(data, output)
 
 def readFile(path):
@@ -42,14 +40,14 @@ class TestFEC(unittest.TestCase):
     runTransfer(self, data)
 
   def test_files(self):
-    for file in os.listdir('testfiles'):
+    for file in sorted(os.listdir('testfiles')):
       testName = 'UseXor: {}, File: {}, DropChance: {}'
       data = readFile('testfiles/' + file)
       cases = [
         {'useXor': False, 'dropChance': 0},
         {'useXor': True, 'dropChance': 0},
-        {'useXor': False, 'dropChance': 0.001},
-        {'useXor': True, 'dropChance': 0.001}
+        {'useXor': False, 'dropChance': 0.01},
+        {'useXor': True, 'dropChance': 0.01}
       ]
       for case in cases:
         with self.subTest(testName.format(case['useXor'], file, case['dropChance'])):

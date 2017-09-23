@@ -57,7 +57,7 @@ while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seq
     b = data[(dataIndex-1)*100:((dataIndex-1)*100)+100]
     payload = xorBytes(a,b)
   if lastDataLength > 0:
-    print(" ,last data length: {}".format(lastDataLength), end='')
+    print("Last data length: {}".format(lastDataLength))
   header = encodeHeader(seqno, lastDataLength)
   packet = header + payload
   # edge case: send three packets if XOR data ends at A packet
@@ -69,4 +69,4 @@ while lastDataLength == 0 or (lastDataLength > 0 and USE_XOR and isXorPacket(seq
       print("Didn't send packet {}:{}".format(seqno, i))
   seqno += 1
   # small delay to allow for receiver processing
-  time.sleep(0.001)
+  time.sleep(0.0001)
